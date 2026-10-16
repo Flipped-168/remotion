@@ -15,6 +15,7 @@ import type {
 	TSequence,
 } from 'remotion';
 import {Internals} from 'remotion';
+import {useTimelineCalculator} from '../../helpers/calculate-timeline';
 import {StudioServerConnectionCtx} from '../../helpers/client-id';
 import {
 	BLUE,
@@ -35,6 +36,7 @@ import {
 	getConnectedCompositionFrame,
 	getSequenceDoubleClickAction,
 } from '../../helpers/get-sequence-double-click-action';
+import {getTimelineNaturalMediaDuration} from '../../helpers/get-timeline-natural-media-duration';
 import {getTimelineSequenceLayout} from '../../helpers/get-timeline-sequence-layout';
 import type {SequenceNodePathInfo} from '../../helpers/get-timeline-sequence-sort-key';
 import {isStudioInteractivityEnabled} from '../../helpers/interactivity-enabled';
@@ -129,7 +131,10 @@ import {
 	TimelineSequenceRightEdgeDragHandle,
 	useTimelineSequenceFromDrag,
 } from './TimelineSequenceRightEdgeDragHandle';
-import {TimelineUnclippedTrimOutline} from './TimelineTrimOutline';
+import {
+	TimelineUnclippedTrimContent,
+	TimelineUndimmedTrimContent,
+} from './TimelineTrimOutline';
 import {TimelineVideoInfo} from './TimelineVideoInfo';
 import {TimelineViewportContext} from './TimelineViewport';
 import {TimelineWidthContext} from './TimelineWidthProvider';
@@ -144,6 +149,12 @@ import {
 
 const NEGATIVE_START_BORDER_WIDTH = 1;
 const EDGE_DRAG_HIGHLIGHT_WIDTH = 12;
+const trimHighlightContainerStyle: React.CSSProperties = {
+	position: 'absolute',
+	inset: 0,
+	pointerEvents: 'none',
+};
+const trimHighlightBlurStyle: React.CSSProperties = {filter: 'blur(4px)'};
 const transitionVerticalInset = Math.round(TIMELINE_PACKED_TRACK_HEIGHT * 0.2);
 const transitionHeight =
 	TIMELINE_PACKED_TRACK_HEIGHT - transitionVerticalInset * 2;
@@ -736,6 +747,57 @@ const TimelineSequenceBar: React.FC<{
 		/>
 	) : null;
 
+	const trimHighlight =
+		activeTrimEdge === null ||
+		(activeTrimEdge === 'left' &&
+			leftTrimHighlight === null) ? null : transitionTrimEdge !== null &&
+		  trimShape ? (
+			<svg
+				aria-hidden="true"
+				style={{
+					position: 'absolute',
+					left: 0,
+					top: 0,
+					width: Number(style.width),
+					height: Number(style.height),
+					clipPath: trimShape.clipPath,
+					overflow: 'hidden',
+					pointerEvents: 'none',
+				}}
+			>
+				<path
+					d={transitionTrimEdge}
+					fill="none"
+					stroke={trimHighlightColor}
+					strokeWidth={EDGE_DRAG_HIGHLIGHT_WIDTH}
+					style={trimHighlightBlurStyle}
+				/>
+				<path
+					d={transitionTrimEdge}
+					fill="none"
+					stroke={trimHighlightColor}
+					strokeWidth={4}
+				/>
+			</svg>
+		) : (
+			<div
+				aria-hidden="true"
+				style={{
+					position: 'absolute',
+					top: 0,
+					bottom: 0,
+					left: activeTrimEdge === 'left' ? leftTrimHighlight?.left : undefined,
+					right: activeTrimEdge === 'right' ? 0 : undefined,
+					width:
+						activeTrimEdge === 'left' && leftTrimHighlight
+							? Math.min(EDGE_DRAG_HIGHLIGHT_WIDTH, leftTrimHighlight.width)
+							: `min(${EDGE_DRAG_HIGHLIGHT_WIDTH}px, 100%)`,
+					pointerEvents: 'none',
+					background: `linear-gradient(to ${activeTrimEdge === 'left' ? 'right' : 'left'}, ${trimHighlightColor}, transparent)`,
+				}}
+			/>
+		);
+
 	const content = (
 		<>
 			{premountIndicator}
@@ -835,57 +897,6 @@ const TimelineSequenceBar: React.FC<{
 					showPremounting={showPremounting}
 				/>
 			) : null}
-
-			{activeTrimEdge === null ||
-			(activeTrimEdge === 'left' &&
-				leftTrimHighlight === null) ? null : transitionTrimEdge !== null &&
-			  trimShape ? (
-				<svg
-					aria-hidden="true"
-					style={{
-						position: 'absolute',
-						left: 0,
-						top: 0,
-						width: Number(style.width),
-						height: Number(style.height),
-						clipPath: trimShape.clipPath,
-						overflow: 'hidden',
-						pointerEvents: 'none',
-					}}
-				>
-					<path
-						d={transitionTrimEdge}
-						fill="none"
-						stroke={trimHighlightColor}
-						strokeWidth={EDGE_DRAG_HIGHLIGHT_WIDTH}
-						style={{filter: 'blur(4px)'}}
-					/>
-					<path
-						d={transitionTrimEdge}
-						fill="none"
-						stroke={trimHighlightColor}
-						strokeWidth={4}
-					/>
-				</svg>
-			) : (
-				<div
-					aria-hidden="true"
-					style={{
-						position: 'absolute',
-						top: 0,
-						bottom: 0,
-						left:
-							activeTrimEdge === 'left' ? leftTrimHighlight?.left : undefined,
-						right: activeTrimEdge === 'right' ? 0 : undefined,
-						width:
-							activeTrimEdge === 'left' && leftTrimHighlight
-								? Math.min(EDGE_DRAG_HIGHLIGHT_WIDTH, leftTrimHighlight.width)
-								: `min(${EDGE_DRAG_HIGHLIGHT_WIDTH}px, 100%)`,
-						pointerEvents: 'none',
-						background: `linear-gradient(to ${activeTrimEdge === 'left' ? 'right' : 'left'}, ${trimHighlightColor}, transparent)`,
-					}}
-				/>
-			)}
 		</>
 	);
 
@@ -1061,6 +1072,48 @@ const TimelineSequenceBar: React.FC<{
 				</div>
 			)}
 			{isTransition ? null : edgeDragHandles}
+			{trimHighlight === null ? null : (
+				<TimelineUndimmedTrimContent>
+					<div
+						data-timeline-trim-highlight={activeTrimEdge}
+						style={{
+							...trimHighlightContainerStyle,
+							...sceneClippingStyle,
+						}}
+					>
+						<div
+							style={{
+								position: 'absolute',
+								top: 0,
+								bottom: 0,
+								left: negativeStartEnd,
+								right: visualRightInset,
+								overflow: 'hidden',
+								borderTopLeftRadius: negativeStart
+									? 0
+									: style.borderTopLeftRadius,
+								borderBottomLeftRadius: negativeStart
+									? 0
+									: style.borderBottomLeftRadius,
+								borderTopRightRadius: style.borderTopRightRadius,
+								borderBottomRightRadius: style.borderBottomRightRadius,
+							}}
+						>
+							<div
+								style={{
+									position: 'absolute',
+									top: 0,
+									bottom: 0,
+									left: -negativeStartEnd,
+									width: style.width,
+								}}
+							>
+								{trimHighlight}
+							</div>
+						</div>
+					</div>
+				</TimelineUndimmedTrimContent>
+			)}
 		</div>
 	);
 };
@@ -1080,6 +1133,7 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 	// if that is the case, it needs to be asynchronously determined
 
 	const video = Internals.useVideo();
+	const calculateTimeline = useTimelineCalculator();
 	const sequencesRef = useContext(Internals.SequenceManagerRefContext);
 	const registryEntry = useTimelineSequenceRegistry(s.id);
 	const isTransitionInteraction =
@@ -1292,22 +1346,12 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 			(s.type === 'audio' || s.type === 'video'
 				? s.playbackRate * s.sequencePlaybackRate
 				: 0);
-	const naturalMediaDuration =
-		(s.type === 'audio' || s.type === 'video') &&
-		mediaMetadata !== null &&
-		s.playbackRate > 0
-			? Math.max(
-					0,
-					(mediaMetadata.duration * (video?.fps ?? 30) -
-						getTimelineMediaStartFrame({
-							startMediaFrom: s.startMediaFrom,
-							mediaFrameAtSequenceZero: s.mediaFrameAtSequenceZero,
-							sequenceFrameOffset,
-							playbackRate: s.playbackRate,
-						})) /
-						(s.playbackRate * s.sequencePlaybackRate),
-				)
-			: null;
+	const naturalMediaDuration = getTimelineNaturalMediaDuration({
+		sequence: s,
+		sequenceFrameOffset,
+		mediaMetadata,
+		fps: video?.fps ?? 30,
+	});
 	const maxMediaDuration =
 		s.type === 'sequence' || s.type === 'image' || extendVideoLastFrame
 			? Infinity
@@ -1526,12 +1570,15 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 
 		splitSelectedTimelineItems({
 			selections: selectedItems,
-			sequences: sequencesRef.current,
-			overrideIdsToNodePaths: overrideIdToNodePathMappingsRef.current,
+			tracks: calculateTimeline({
+				sequences: sequencesRef.current,
+				overrideIdsToNodePaths: overrideIdToNodePathMappingsRef.current,
+			}).tracks,
 			propStatuses,
 			splitFrame: getCurrentFrame(),
 		})?.catch(() => undefined);
 	}, [
+		calculateTimeline,
 		overrideIdToNodePathMappingsRef,
 		previewInteractive,
 		propStatuses,
@@ -1611,8 +1658,10 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 					getContextForAgents: () =>
 						getSequencesContextForAgents({
 							nodePathInfos: selectedSequenceNodePathInfos,
-							overrideIdsToNodePaths: overrideIdToNodePathMappingsRef.current,
-							sequences: sequencesRef.current,
+							tracks: calculateTimeline({
+								sequences: sequencesRef.current,
+								overrideIdsToNodePaths: overrideIdToNodePathMappingsRef.current,
+							}).tracks,
 						}),
 					deleteDisabled: !previewInteractive,
 					duplicateDisabled: !previewInteractive,
@@ -1714,6 +1763,7 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 			openInCodingAgent,
 			openInEditor,
 			originalLocation,
+			calculateTimeline,
 			overrideIdToNodePathMappingsRef,
 			previewInteractive,
 			previewServerState,
@@ -2330,7 +2380,7 @@ const TimelineSequenceLayoutInner: React.FC<{
 			</>
 		);
 		return isSourceOnly ? (
-			<TimelineUnclippedTrimOutline>{outline}</TimelineUnclippedTrimOutline>
+			<TimelineUnclippedTrimContent>{outline}</TimelineUnclippedTrimContent>
 		) : (
 			outline
 		);
@@ -2529,7 +2579,12 @@ const TimelineSequenceLayoutInner: React.FC<{
 				>
 					{showLeftActions && nodePathInfo ? (
 						<TimelineSequenceLeftEdgeDragHandle
-							cursor={`${timelineTrimEdgeCursor}, ew-resize`}
+							// Transition targets keep the default cursor, including during rolling edits.
+							cursor={
+								s.timelineTrack?.role === 'transition'
+									? 'default'
+									: `${timelineTrimEdgeCursor}, ew-resize`
+							}
 							trimBeforeCursor={`${timelineLeftEdgeCursor}, e-resize`}
 							sourceOnlyCursor={`${timelineSourceOnlyCursor}, ew-resize`}
 							edgeEnabled={leftTrimEnabled}
