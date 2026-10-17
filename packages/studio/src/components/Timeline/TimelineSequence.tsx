@@ -69,6 +69,7 @@ import {
 	getSequenceContextMenuItems,
 } from './get-sequence-context-menu-items';
 import {getSequenceSplitMenuItem} from './get-sequence-split-menu-item';
+import {getSequenceUnwrapMenuItem} from './get-sequence-unwrap-menu-item';
 import {getSequencesContextForAgents} from './get-sequences-context-for-agents';
 import {getTimelineMediaStartFrame} from './get-timeline-media-start-frame';
 import {
@@ -149,6 +150,8 @@ import {
 
 const NEGATIVE_START_BORDER_WIDTH = 1;
 const EDGE_DRAG_HIGHLIGHT_WIDTH = 12;
+// Leave room for a full 11px character before the label's 5px fade.
+const MIN_TIMELINE_LABEL_WIDTH = 16;
 const trimHighlightContainerStyle: React.CSSProperties = {
 	position: 'absolute',
 	inset: 0,
@@ -568,6 +571,8 @@ const TimelineSequenceBar: React.FC<{
 	const sceneOwnsRightGap =
 		sceneRange !== null &&
 		sceneRange.transitionOutStart !== null &&
+		// An inherited transition beyond this child scene cannot provide its gap.
+		sceneRange.transitionOutStart < sceneRange.end &&
 		// The scene contour already includes the pixel-aligned outgoing gap.
 		// Allow for floating-point error when the bar ends at the same frame.
 		sceneRight <= Number(style.width) + 0.0001;
@@ -798,6 +803,20 @@ const TimelineSequenceBar: React.FC<{
 			/>
 		);
 
+	// The stacked 10px icon and 15px label need 26px including the bottom inset.
+	const inlineConnectedCompositionIcon =
+		connectedComposition !== null &&
+		Number(style.height) -
+			(hasTimelineTrackMediaLabel(s) ? getTimelineLayerHeight(s.type) : 0) <
+			26;
+	const labelTextWidth =
+		Number(style.width) -
+		visualRightInset -
+		labelRight -
+		labelLeft -
+		(inlineConnectedCompositionIcon ? 14 : 0) -
+		(s.timelineTrack?.role === 'track' && frozenFrame !== null ? 16 : 0);
+
 	const content = (
 		<>
 			{premountIndicator}
@@ -817,7 +836,7 @@ const TimelineSequenceBar: React.FC<{
 
 			{(s.timelineTrack || hasCaptionsSchema) &&
 			!isTransition &&
-			Number(style.width) - labelRight > labelLeft ? (
+			labelTextWidth >= MIN_TIMELINE_LABEL_WIDTH ? (
 				<div
 					style={{
 						position: 'absolute',
@@ -829,8 +848,11 @@ const TimelineSequenceBar: React.FC<{
 							? {top: getTimelineLayerHeight(s.type)}
 							: {}),
 						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'flex-start',
+						flexDirection: inlineConnectedCompositionIcon ? 'row' : 'column',
+						alignItems: inlineConnectedCompositionIcon
+							? 'center'
+							: 'flex-start',
+						gap: inlineConnectedCompositionIcon ? 4 : 0,
 						overflow: 'hidden',
 						pointerEvents: 'none',
 						userSelect: 'none',
@@ -1393,14 +1415,25 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 			: undefined;
 	}, [propStatuses, nodePath]);
 	const volumeDragOverride = dragOverrides.volume;
-	const volumeKeyframeStatus = useMemo(() => {
+	const waveformVolume = useMemo(() => {
+		if (volumeDragOverride?.type === 'static') {
+			return typeof volumeDragOverride.value === 'number'
+				? volumeDragOverride.value
+				: null;
+		}
+
 		if (volumeDragOverride?.type === 'keyframed') {
 			return volumeDragOverride.status;
 		}
 
-		return propStatusesForOverride?.volume?.status === 'keyframed'
-			? propStatusesForOverride.volume
-			: null;
+		const volumeStatus = propStatusesForOverride?.volume;
+		if (volumeStatus?.status === 'static') {
+			return typeof volumeStatus.codeValue === 'number'
+				? volumeStatus.codeValue
+				: null;
+		}
+
+		return volumeStatus?.status === 'keyframed' ? volumeStatus : null;
 	}, [propStatusesForOverride?.volume, volumeDragOverride]);
 	const durationCanUpdate = Boolean(
 		isStudioInteractivityEnabled() &&
@@ -1441,10 +1474,13 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 	const showPremounting = showPremountingSetting || premountSelected;
 	const previewConnected = previewServerState.type === 'connected';
 	const previewInteractive = previewConnected && isStudioInteractivityEnabled();
+	const compositionManagerRef = useContext(
+		Internals.CompositionManagerRefContext,
+	);
 	const {setPropStatuses} = useContext(Internals.VisualModeSettersContext);
 	const {setSelectedModal} = useContext(SetSelectedModalContext);
 	const selectAsset = useSelectAsset();
-	const assetContextMenu = useAssetTimelineContextMenu();
+	const getAssetContextMenu = useAssetTimelineContextMenu();
 	const selectComposition = useSelectComposition();
 	const confirm = useConfirmationDialog();
 	const deleteTimelineItems = useDeleteTimelineItems();
@@ -1645,6 +1681,7 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 				event.target instanceof Element
 					? event.target.closest<HTMLElement>(`[${TIMELINE_MARQUEE_ITEM_ATTR}]`)
 					: null;
+			const assetContextMenu = getAssetContextMenu();
 			if (assetContextMenu !== null) {
 				return assetContextMenu;
 			}
@@ -1655,6 +1692,7 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 
 			if (selectedSequenceNodePathInfos !== null) {
 				return getMultiSequenceContextMenuItems({
+					selectedItemCount: selectedSequenceNodePathInfos.length,
 					getContextForAgents: () =>
 						getSequencesContextForAgents({
 							nodePathInfos: selectedSequenceNodePathInfos,
@@ -1671,6 +1709,20 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 					onSplitSelectedSequences,
 				});
 			}
+
+			const {canvasContent} = compositionManagerRef.current;
+			const unwrapMenuItem = getSequenceUnwrapMenuItem({
+				sequence: s,
+				sourceLocation: validatedLocation,
+				setSelectedModal,
+				canEditSource: previewInteractive && Boolean(validatedLocation?.source),
+				compositionId:
+					canvasContent?.type === 'composition'
+						? canvasContent.compositionId
+						: null,
+				isTransition: s.timelineTrack?.role === 'transition',
+				nodePath,
+			});
 
 			const splitMenuItem = getSequenceSplitMenuItem({
 				nodePathInfo,
@@ -1729,17 +1781,23 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 					selectAsset,
 					sequence: s,
 					sourceActions: isStudioInteractivityEnabled()
-						? [
-								...(splitMenuItem ? [splitMenuItem] : []),
-								...(freezeFrameMenuItem ? [freezeFrameMenuItem] : []),
-							]
-						: [],
+						? {
+								rename: null,
+								timing: [
+									...(splitMenuItem ? [splitMenuItem] : []),
+									...(freezeFrameMenuItem ? [freezeFrameMenuItem] : []),
+								],
+								appearance: [],
+								unwrap: unwrapMenuItem,
+							}
+						: null,
 				},
 				contextMenuTarget,
 			);
 		},
 		[
-			assetContextMenu,
+			getAssetContextMenu,
+			compositionManagerRef,
 			canOpenInEditor,
 			canConfigureApps,
 			codingAgentInfo,
@@ -1778,7 +1836,7 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 			sequencesRef,
 			setPropStatuses,
 			setSelectedModal,
-			validatedLocation?.source,
+			validatedLocation,
 		],
 	);
 	const {frozenFrame} = s;
@@ -1791,8 +1849,12 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 		? s.loopDisplay.durationInFrames * s.loopDisplay.numberOfTimes
 		: s.duration;
 	const timelineVolume = useMemo(() => {
+		if (typeof waveformVolume === 'number' && Number.isFinite(waveformVolume)) {
+			return {type: 'constant' as const, value: Math.max(0, waveformVolume)};
+		}
+
 		return getTimelineVolume({
-			status: volumeKeyframeStatus,
+			status: typeof waveformVolume === 'number' ? null : waveformVolume,
 			displayDurationInFrames,
 			firstDisplayFrame: s.from + (s.loopDisplay?.startOffset ?? 0),
 			keyframeDisplayOffset,
@@ -1804,7 +1866,7 @@ const useTimelineSequenceState = (props: TimelineSequenceProps) => {
 		keyframePlaybackRate,
 		s.from,
 		s.loopDisplay?.startOffset,
-		volumeKeyframeStatus,
+		waveformVolume,
 	]);
 
 	const isMedia = s.type === 'audio' || s.type === 'video';

@@ -494,6 +494,10 @@ export type UnsubscribeFromSequencePropsRequest = {
 	effectKeys: string[][];
 };
 
+export type UnsubscribeFromSequencePropsBatchRequest = {
+	requests: UnsubscribeFromSequencePropsRequest[];
+};
+
 export type GoogleFontSourceEdit = {
 	fontFamily: string;
 	importName: string;
@@ -987,6 +991,21 @@ export type WrapNodeResponse =
 			success: true;
 			canWrap: boolean;
 			canWrapHtmlInCanvas: boolean;
+			nodePathMutation: SequenceNodePathMutation | null;
+	  }
+	| {success: false; reason: string; stack: string};
+
+export type UnwrapNodeRequest = {
+	fileName: string;
+	compositionId: string;
+	nodePath: SequenceNodePath;
+	dryRun: boolean;
+};
+
+export type UnwrapNodeResponse =
+	| {
+			success: true;
+			canUnwrap: boolean;
 			nodePathMutation: SequenceNodePathMutation | null;
 	  }
 	| {success: false; reason: string; stack: string};
@@ -1598,7 +1617,7 @@ export const studioOperations = {
 		SubscribeToSequencePropsBatchResponse
 	>({mutatesSource: false}),
 	'/api/unsubscribe-from-sequence-props': new StudioOperation<
-		UnsubscribeFromSequencePropsRequest,
+		UnsubscribeFromSequencePropsBatchRequest,
 		undefined
 	>({mutatesSource: false}),
 	'/api/save-sequence-props': new StudioOperation<
@@ -1679,6 +1698,10 @@ export const studioOperations = {
 	'/api/precompose-jsx-nodes': new StudioOperation<
 		PrecomposeJsxNodesRequest,
 		PrecomposeJsxNodesResponse
+	>({mutatesSource: true}),
+	'/api/unwrap-node': new StudioOperation<
+		UnwrapNodeRequest,
+		UnwrapNodeResponse
 	>({mutatesSource: true}),
 	'/api/wrap-node': new StudioOperation<WrapNodeRequest, WrapNodeResponse>({
 		mutatesSource: true,
