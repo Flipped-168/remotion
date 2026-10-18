@@ -302,6 +302,17 @@ export const EFFECT_CATALOG: readonly EffectCatalogItem[] = [
 		},
 	},
 	{
+		id: 'effects-lens-blur',
+		category: 'Blur & Shadow',
+		label: 'lensBlur()',
+		description: 'Camera defocus with shaped bokeh',
+		effect: {
+			name: 'lensBlur',
+			importPath: '@remotion/effects/lens-blur',
+			config: {},
+		},
+	},
+	{
 		id: 'effects-linear-progressive-blur',
 		category: 'Blur & Shadow',
 		label: 'linearProgressiveBlur()',
@@ -531,6 +542,39 @@ export const EFFECT_CATALOG: readonly EffectCatalogItem[] = [
 		},
 	},
 	{
+		id: 'effects-page-turn',
+		category: 'Distort',
+		label: 'pageTurn()',
+		description: 'Curl a page with a shaded fold and paper back',
+		effect: {
+			name: 'pageTurn',
+			importPath: '@remotion/effects/page-turn',
+			config: {},
+		},
+	},
+	{
+		id: 'effects-sphere',
+		category: 'Distort',
+		label: 'sphere()',
+		description: 'Wrap content around a rotating sphere',
+		effect: {
+			name: 'sphere',
+			importPath: '@remotion/effects/sphere',
+			config: {},
+		},
+	},
+	{
+		id: 'effects-cylinder',
+		category: 'Distort',
+		label: 'cylinder()',
+		description: 'Wrap content around a rotating cylinder',
+		effect: {
+			name: 'cylinder',
+			importPath: '@remotion/effects/cylinder',
+			config: {},
+		},
+	},
+	{
 		id: 'effects-wave',
 		category: 'Distort',
 		label: 'wave()',
@@ -549,6 +593,17 @@ export const EFFECT_CATALOG: readonly EffectCatalogItem[] = [
 		effect: {
 			name: 'skew',
 			importPath: '@remotion/effects/skew',
+			config: {},
+		},
+	},
+	{
+		id: 'effects-turbulent-displace',
+		category: 'Distort',
+		label: 'turbulentDisplace()',
+		description: 'Evolving turbulent, bulge and twist distortion',
+		effect: {
+			name: 'turbulentDisplace',
+			importPath: '@remotion/effects/turbulent-displace',
 			config: {},
 		},
 	},
@@ -768,6 +823,17 @@ export const EFFECT_CATALOG: readonly EffectCatalogItem[] = [
 		effect: {
 			name: 'vignette',
 			importPath: '@remotion/effects/vignette',
+			config: {},
+		},
+	},
+	{
+		id: 'effects-fractal-noise',
+		category: 'Generate',
+		label: 'fractalNoise()',
+		description: 'Evolving fractal noise textures',
+		effect: {
+			name: 'fractalNoise',
+			importPath: '@remotion/effects/fractal-noise',
 			config: {},
 		},
 	},

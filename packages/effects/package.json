@@ -49,6 +49,11 @@
 			"module": "./dist/esm/burlap.mjs",
 			"import": "./dist/esm/burlap.mjs"
 		},
+		"./fractal-noise": {
+			"types": "./dist/fractal-noise.d.ts",
+			"module": "./dist/esm/fractal-noise.mjs",
+			"import": "./dist/esm/fractal-noise.mjs"
+		},
 		"./flannel": {
 			"types": "./dist/flannel.d.ts",
 			"module": "./dist/esm/flannel.mjs",
@@ -88,6 +93,11 @@
 			"types": "./dist/contour-lines.d.ts",
 			"module": "./dist/esm/contour-lines.mjs",
 			"import": "./dist/esm/contour-lines.mjs"
+		},
+		"./cylinder": {
+			"types": "./dist/cylinder.d.ts",
+			"module": "./dist/esm/cylinder.mjs",
+			"import": "./dist/esm/cylinder.mjs"
 		},
 		"./drop-shadow": {
 			"types": "./dist/drop-shadow.d.ts",
@@ -199,6 +209,11 @@
 			"module": "./dist/esm/linear-progressive-pixelate.mjs",
 			"import": "./dist/esm/linear-progressive-pixelate.mjs"
 		},
+		"./lens-blur": {
+			"types": "./dist/lens-blur.d.ts",
+			"module": "./dist/esm/lens-blur.mjs",
+			"import": "./dist/esm/lens-blur.mjs"
+		},
 		"./levels": {
 			"types": "./dist/levels.d.ts",
 			"module": "./dist/esm/levels.mjs",
@@ -243,6 +258,11 @@
 			"types": "./dist/outline.d.ts",
 			"module": "./dist/esm/outline.mjs",
 			"import": "./dist/esm/outline.mjs"
+		},
+		"./page-turn": {
+			"types": "./dist/page-turn.d.ts",
+			"module": "./dist/esm/page-turn.mjs",
+			"import": "./dist/esm/page-turn.mjs"
 		},
 		"./paper": {
 			"types": "./dist/paper.d.ts",
@@ -319,6 +339,11 @@
 			"module": "./dist/esm/speckle.mjs",
 			"import": "./dist/esm/speckle.mjs"
 		},
+		"./sphere": {
+			"types": "./dist/sphere.d.ts",
+			"module": "./dist/esm/sphere.mjs",
+			"import": "./dist/esm/sphere.mjs"
+		},
 		"./starburst": {
 			"types": "./dist/starburst.d.ts",
 			"module": "./dist/esm/starburst.mjs",
@@ -348,6 +373,11 @@
 			"types": "./dist/translate.d.ts",
 			"module": "./dist/esm/translate.mjs",
 			"import": "./dist/esm/translate.mjs"
+		},
+		"./turbulent-displace": {
+			"types": "./dist/turbulent-displace.d.ts",
+			"module": "./dist/esm/turbulent-displace.mjs",
+			"import": "./dist/esm/turbulent-displace.mjs"
 		},
 		"./tv-signal-off": {
 			"types": "./dist/tv-signal-off.d.ts",
@@ -412,6 +442,9 @@
 			"burlap": [
 				"dist/burlap.d.ts"
 			],
+			"fractal-noise": [
+				"dist/fractal-noise.d.ts"
+			],
 			"flannel": [
 				"dist/flannel.d.ts"
 			],
@@ -435,6 +468,9 @@
 			],
 			"contour-lines": [
 				"dist/contour-lines.d.ts"
+			],
+			"cylinder": [
+				"dist/cylinder.d.ts"
 			],
 			"drop-shadow": [
 				"dist/drop-shadow.d.ts"
@@ -502,6 +538,9 @@
 			"linear-progressive-pixelate": [
 				"dist/linear-progressive-pixelate.d.ts"
 			],
+			"lens-blur": [
+				"dist/lens-blur.d.ts"
+			],
 			"levels": [
 				"dist/levels.d.ts"
 			],
@@ -528,6 +567,9 @@
 			],
 			"outline": [
 				"dist/outline.d.ts"
+			],
+			"page-turn": [
+				"dist/page-turn.d.ts"
 			],
 			"paper": [
 				"dist/paper.d.ts"
@@ -574,6 +616,9 @@
 			"speckle": [
 				"dist/speckle.d.ts"
 			],
+			"sphere": [
+				"dist/sphere.d.ts"
+			],
 			"starburst": [
 				"dist/starburst.d.ts"
 			],
@@ -591,6 +636,9 @@
 			],
 			"translate": [
 				"dist/translate.d.ts"
+			],
+			"turbulent-displace": [
+				"dist/turbulent-displace.d.ts"
 			],
 			"tv-signal-off": [
 				"dist/tv-signal-off.d.ts"
@@ -627,10 +675,11 @@
 	"homepage": "https://www.remotion.dev/docs/effects/api",
 	"devDependencies": {
 		"@remotion/eslint-config-internal": "workspace:*",
+		"@typescript/native-preview": "catalog:",
 		"@vitest/browser-playwright": "catalog:",
+		"@webgpu/types": "0.1.74",
 		"eslint": "catalog:",
-		"vitest": "catalog:",
-		"@typescript/native-preview": "catalog:"
+		"vitest": "catalog:"
 	},
 	"keywords": [
 		"remotion",
