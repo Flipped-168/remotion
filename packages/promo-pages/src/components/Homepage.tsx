@@ -32,9 +32,9 @@ export const NewLanding: React.FC<{
 	const [studioHandoffReady, setStudioHandoffReady] = useState(false);
 	const studioHandoffSrc = useTransparentVideoSource({
 		videoSrc:
-			'https://remotion.media/homepage/studio-handoff-window-borders-83b81de1b9fe.webm',
+			'https://remotion.media/homepage/studio-handoff-continuous-waveform-bf3fb054d840.webm',
 		fallbackVideoSrc:
-			'https://remotion.media/homepage/studio-handoff-window-borders-83b81de1b9fe.mp4',
+			'https://remotion.media/homepage/studio-handoff-continuous-waveform-bf3fb054d840.mp4',
 	});
 
 	return (
