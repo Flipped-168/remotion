@@ -1,11 +1,15 @@
 import React from 'react';
 import {GetStarted} from './GetStartedStrip';
+import type {StudioHandoffTitleState} from './studio-handoff/animation';
 import {StudioHandoffTitle} from './StudioHandoffTitle';
 
 export const WriteInReact: React.FC<{
 	readonly alignWithDevice: boolean;
-	readonly videoRef: React.RefObject<HTMLVideoElement | null> | null;
-}> = ({alignWithDevice, videoRef}) => {
+	readonly onFrameRef: React.RefObject<
+		((state: StudioHandoffTitleState) => void) | null
+	> | null;
+	readonly sectionLabelsRef: React.RefObject<HTMLDivElement | null> | null;
+}> = ({alignWithDevice, onFrameRef, sectionLabelsRef}) => {
 	const textAlignment = alignWithDevice ? 'text-left' : 'text-center';
 	const textStyle: React.CSSProperties = {
 		textShadow: '0 5px 30px var(--background)',
@@ -31,8 +35,11 @@ export const WriteInReact: React.FC<{
 						: undefined,
 				}}
 			>
-				{videoRef ? (
-					<StudioHandoffTitle videoRef={videoRef} />
+				{onFrameRef ? (
+					<StudioHandoffTitle
+						onFrameRef={onFrameRef}
+						sectionLabelsRef={sectionLabelsRef}
+					/>
 				) : (
 					'Make videos programmatically.'
 				)}
@@ -46,7 +53,10 @@ export const WriteInReact: React.FC<{
 				style={secondaryRowStyle}
 			>
 				<p
-					style={textStyle}
+					style={{
+						...textStyle,
+						translate: alignWithDevice ? '0 1px' : undefined,
+					}}
 					className={`font-medium text-lg ${textAlignment} ${alignWithDevice ? 'min-w-0 flex-1' : ''}`}
 				>
 					Create videos and motion graphics with React.{' '}
@@ -58,7 +68,7 @@ export const WriteInReact: React.FC<{
 				<div
 					className={
 						alignWithDevice
-							? 'mt-[calc(var(--hero-gap)-4px)] lg:mt-0 lg:mb-0.5 lg:ml-auto lg:shrink-0'
+							? 'hidden min-[900px]:block mt-[calc(var(--hero-gap)-4px)] lg:mt-0 lg:mb-0.5 lg:ml-auto lg:shrink-0'
 							: undefined
 					}
 				>

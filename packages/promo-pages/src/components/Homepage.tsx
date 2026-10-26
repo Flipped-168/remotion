@@ -1,11 +1,12 @@
 'use client';
 
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {ExploreSection} from './ExploreSection';
 import {BackgroundAnimation} from './homepage/BackgroundAnimation';
 import CommunityStats from './homepage/CommunityStats';
 import {Demo} from './homepage/Demo';
 import EvaluateRemotionSection from './homepage/EvaluateRemotion';
+import {GetStarted} from './homepage/GetStartedStrip';
 import type {ColorMode} from './homepage/layout/use-color-mode';
 import {ColorModeProvider} from './homepage/layout/use-color-mode';
 import {MakeVideosAgentically} from './homepage/MakeVideosAgentically';
@@ -14,32 +15,38 @@ import {MakeVideosProgrammatically} from './homepage/MakeVideosProgrammatically'
 import {NewsletterButton} from './homepage/NewsletterButton';
 import {Pricing} from './homepage/Pricing';
 import {ReactSourceOfTruth} from './homepage/ReactSourceOfTruth';
+import type {
+	StudioHandoffMode,
+	StudioHandoffTitleState,
+} from './homepage/studio-handoff/animation';
+import {StudioHandoffSectionTitle} from './homepage/StudioHandoffSectionTitle';
+import {StudioHandoffCanvas} from './homepage/StudioHandoffCanvas';
 import TrustedByBanner from './homepage/TrustedByBanner';
-import {useTransparentVideoSource} from './homepage/use-transparent-video-source';
 import {BuiltWithRemotionShowcase} from './homepage/VideoAppsShowcase';
 import {SectionTitle} from './homepage/VideoAppsTitle';
 import {WriteInReact} from './homepage/WriteInReact';
 
 const makeVideosRowClassName =
-	'mt-4 min-[900px]:mt-6 flex flex-col min-[900px]:flex-row gap-10';
+	'mt-4 min-[900px]:mt-6 flex flex-col gap-10 min-[900px]:grid min-[900px]:grid-cols-[repeat(3,270px)] min-[900px]:justify-between min-[900px]:gap-x-0';
 
 export const NewLanding: React.FC<{
 	readonly colorMode: ColorMode;
 	readonly setColorMode: (colorMode: ColorMode) => void;
 	readonly experimental: boolean;
 }> = ({colorMode, setColorMode, experimental}) => {
-	const studioHandoffVideoRef = useRef<HTMLVideoElement>(null);
-	const [studioHandoffReady, setStudioHandoffReady] = useState(false);
-	const studioHandoffSrc = useTransparentVideoSource({
-		videoSrc:
-			'https://remotion.media/homepage/studio-handoff-continuous-waveform-bf3fb054d840.webm',
-		fallbackVideoSrc:
-			'https://remotion.media/homepage/studio-handoff-continuous-waveform-bf3fb054d840.mp4',
-	});
+	const studioHandoffFrameRef = useRef<
+		((state: StudioHandoffTitleState) => void) | null
+	>(null);
+	const studioHandoffLabelsRef = useRef<HTMLDivElement>(null);
+	const selectStudioModeRef = useRef<
+		((mode: StudioHandoffMode) => void) | null
+	>(null);
 
 	return (
 		<ColorModeProvider colorMode={colorMode} setColorMode={setColorMode}>
-			<div className="w-full relative">
+			<div
+				className={`w-full relative ${experimental ? 'experimental-homepage' : ''}`}
+			>
 				<div style={{overflow: 'hidden'}}>
 					{experimental ? (
 						<div aria-hidden style={{height: 'calc(2lh - 20px)'}} />
@@ -59,7 +66,8 @@ export const NewLanding: React.FC<{
 					>
 						<WriteInReact
 							alignWithDevice={experimental}
-							videoRef={experimental ? studioHandoffVideoRef : null}
+							onFrameRef={experimental ? studioHandoffFrameRef : null}
+							sectionLabelsRef={experimental ? studioHandoffLabelsRef : null}
 						/>
 						{experimental ? null : (
 							<>
@@ -75,6 +83,7 @@ export const NewLanding: React.FC<{
 							>
 								<div
 									aria-hidden
+									className="[--hero-gradient-opacity:0.08] min-[900px]:[--hero-gradient-opacity:0.03]"
 									style={{
 										position: 'absolute',
 										bottom: 0,
@@ -82,52 +91,70 @@ export const NewLanding: React.FC<{
 										width: '100vw',
 										height: 100,
 										transform: 'translateX(-50%)',
-										background: `linear-gradient(to top, ${colorMode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(0, 0, 0, 0.03)'}, transparent)`,
+										background: `linear-gradient(to top, ${colorMode === 'dark' ? 'rgba(255, 255, 255, var(--hero-gradient-opacity))' : 'rgba(0, 0, 0, var(--hero-gradient-opacity))'}, transparent)`,
 										pointerEvents: 'none',
 										zIndex: -1,
 									}}
 								/>
-								{studioHandoffReady ? null : (
-									<div
-										aria-hidden
-										className="absolute inset-0 overflow-hidden pointer-events-none"
-									>
-										<div
-											style={{
-												width: '100%',
-												aspectRatio: '1874 / 1075',
-												backgroundColor: '#101114',
-												borderRadius: '2.16% / 3.77%',
-											}}
-										/>
-									</div>
-								)}
-								<video
-									ref={studioHandoffVideoRef}
-									src={studioHandoffSrc ?? undefined}
-									onLoadedData={() => setStudioHandoffReady(true)}
-									onEmptied={() => setStudioHandoffReady(false)}
-									autoPlay
-									muted
-									loop
-									playsInline
-									preload="metadata"
-									width={1874}
-									height={1020}
-									aria-label="Remotion Studio, Codex and VS Code working together"
-									className="block aspect-[1874/1020] h-auto w-full"
-									style={{opacity: studioHandoffReady ? 1 : 0}}
+								<StudioHandoffCanvas
+									onFrameRef={studioHandoffFrameRef}
+									selectModeRef={selectStudioModeRef}
 								/>
 							</div>
 						) : null}
-						<div className={makeVideosRowClassName}>
+						{experimental ? (
+							<div className="mt-2.5 min-[900px]:hidden">
+								<GetStarted alignRight command="npx create-video" />
+							</div>
+						) : null}
+						<div
+							ref={studioHandoffLabelsRef}
+							className={makeVideosRowClassName}
+						>
 							<MakeVideosAgentically
+								title={
+									experimental ? (
+										<StudioHandoffSectionTitle
+											mode="agentically"
+											selectModeRef={selectStudioModeRef}
+										/>
+									) : undefined
+								}
+								description={
+									experimental
+										? 'Turn your idea into a video using your agent.'
+										: undefined
+								}
 								showVideo={!experimental}
 								videoSrc="/img/homepage-assets-master.webm"
 								fallbackVideoSrc="/img/homepage-assets-master.mp4"
 							/>
-							<MakeVideosInteractively showVideo={!experimental} />
+							<MakeVideosInteractively
+								videoStyle={null}
+								title={
+									experimental ? (
+										<StudioHandoffSectionTitle
+											mode="interactively"
+											selectModeRef={selectStudioModeRef}
+										/>
+									) : undefined
+								}
+								showVideo={!experimental}
+							/>
 							<MakeVideosProgrammatically
+								title={
+									experimental ? (
+										<StudioHandoffSectionTitle
+											mode="programmatically"
+											selectModeRef={selectStudioModeRef}
+										/>
+									) : undefined
+								}
+								description={
+									experimental
+										? 'Own the code, use the web and bring your assets.'
+										: undefined
+								}
 								showVideo={!experimental}
 								links={[
 									{label: 'API Docs', href: '/docs/api'},
@@ -135,20 +162,16 @@ export const NewLanding: React.FC<{
 								]}
 							/>
 						</div>
-						<ReactSourceOfTruth />
+						{experimental ? null : <ReactSourceOfTruth />}
 						<div className={makeVideosRowClassName}>
 							<MakeVideosProgrammatically
 								title="Parameterization"
-								description="Organize your assets and connect your data."
+								description="Build templates and connect your data."
 								videoSrc={
-									experimental
-										? 'https://remotion.media/homepage/design-systems-border-9871af1c4d7f.webm'
-										: '/img/design-systems.webm'
+									'https://remotion.media/homepage/parameterization-centered-row-7f994189e254.webm'
 								}
 								fallbackVideoSrc={
-									experimental
-										? 'https://remotion.media/homepage/design-systems-border-9871af1c4d7f.mp4'
-										: '/img/design-systems.mp4'
+									'https://remotion.media/homepage/parameterization-centered-row-a171e9b1897d.mp4'
 								}
 								links={[
 									{
@@ -162,14 +185,10 @@ export const NewLanding: React.FC<{
 								title="Batch rendering"
 								description="Render millions of videos on your own infrastructure."
 								videoSrc={
-									experimental
-										? 'https://remotion.media/homepage/render-progress-flush-e9ec7d39c5f8.webm'
-										: '/img/render-progress.webm'
+									'https://remotion.media/homepage/render-progress-inset-padded-c2444f4217c0.webm'
 								}
 								fallbackVideoSrc={
-									experimental
-										? 'https://remotion.media/homepage/render-progress-flush-e9ec7d39c5f8.mp4'
-										: '/img/render-progress.mp4'
+									'https://remotion.media/homepage/render-progress-inset-padded-25b72a686e9d.mp4'
 								}
 								links={[
 									{
@@ -184,15 +203,30 @@ export const NewLanding: React.FC<{
 							/>
 							<MakeVideosInteractively
 								title="Applications"
-								description="Publish a simple tool or a complex video editor."
+								videoStyle={
+									experimental
+										? {
+												// Display the 840px editor at column width; keep the
+												// wider canvas available for the orbiting cursor.
+												position: 'absolute',
+												top: 0,
+												left: `${(-200 / 840) * 100}%`,
+												width: `${(1280 / 840) * 100}%`,
+												maxWidth: 'none',
+												maxHeight: 'none',
+												pointerEvents: 'none',
+											}
+										: null
+								}
+								description="Make a simple tool or build a complex video editor."
 								videoSrc={
 									experimental
-										? 'https://remotion.media/homepage/applications-outline-input-e966e757a1ae.webm'
+										? 'https://remotion.media/homepage/applications-map-raised-1ea081adebd3.webm'
 										: '/img/applications.webm'
 								}
 								fallbackVideoSrc={
 									experimental
-										? 'https://remotion.media/homepage/applications-outline-input-e966e757a1ae.mp4'
+										? 'https://remotion.media/homepage/applications-map-raised-bcb117322f3a.mp4'
 										: '/img/applications.mp4'
 								}
 								links={[
@@ -219,6 +253,12 @@ export const NewLanding: React.FC<{
 							</>
 						)}
 						<SectionTitle>Pricing</SectionTitle>
+						<p className="font-brand mt-0 mb-8 text-center text-lg leading-relaxed [.experimental-homepage_&]:text-left">
+							Remotion is completely free to use for any individual or small
+							company - no catch.
+							<br />
+							For bigger companies, we charge a license fee.
+						</p>
 						<Pricing />
 						<div className={makeVideosRowClassName}>
 							<TrustedByBanner />

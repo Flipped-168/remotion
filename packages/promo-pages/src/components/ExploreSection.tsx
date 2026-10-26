@@ -6,20 +6,21 @@ import {SectionTitle} from './homepage/VideoAppsTitle';
 const videoSources: Record<string, string> = {
 	Video: 'video-playback-2026-09-22.mp4',
 	Audio: 'audio-waveform.mp4',
-	Captions: 'captions-2026-10-20-7c7e04671491.mp4',
+	Captions: 'captions-2026-10-25-6b3e5502cee9.mp4',
 	AI: 'ai-prompt-2026-10-20-77a73116a839.mp4',
 	Parameterization: 'parameterization-blue-2026-10-20-6278779b9cd1.mp4',
 	Rendering: 'render-modal-codec.mp4',
 	Effects: 'effects-2026-10-20-869defbc5f69.mp4',
 	Transitions: 'transitions-2026-10-20-b49c7dfb4fe1.mp4',
 	'Color Correction': 'color-correction-2026-10-20-b0f28e423a58.mp4',
+	Convert: 'convert-2026-10-25-553dad454550.mp4',
 };
 
 export const ExploreSection: React.FC = () => {
 	return (
 		<section className="mx-auto max-w-[1000px] px-5 pt-24 pb-24 [&_h2]:mb-0">
 			<SectionTitle>Problems we solve</SectionTitle>
-			<p className="mx-auto mt-2 mb-10 max-w-[760px] text-center fontbrand text-balance leading-relaxed">
+			<p className="mx-auto mt-2 mb-10 max-w-[760px] text-center fontbrand text-lg text-balance leading-relaxed [.experimental-homepage_&]:mx-0 [.experimental-homepage_&]:text-left">
 				We explode the world of video creation into pieces and let you assemble
 				them.
 			</p>
@@ -74,9 +75,7 @@ export const ExploreSection: React.FC = () => {
 								/>
 							</video>
 						) : null}
-						<h3
-							className="explore-title relative z-10 m-0 fontbrand text-lg leading-[1.1] font-medium min-[900px]:text-2xl"
-						>
+						<h3 className="explore-title relative z-10 m-0 fontbrand text-lg leading-[1.1] font-medium min-[900px]:text-2xl">
 							{item}
 						</h3>
 					</div>

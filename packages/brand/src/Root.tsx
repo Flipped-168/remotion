@@ -88,6 +88,7 @@ import {
 import {EffectsRecordingComposition} from './EffectsRecordingComposition';
 import {EmailSignature} from './EmailSignature';
 import {CodingPrompt, codingPromptSchema} from './HomepageAssets/CodingPrompt';
+import {CursorOrbit} from './HomepageAssets/CursorOrbit';
 import {
 	ExpertsGraphic,
 	expertsGraphicDurationInFrames,
@@ -98,6 +99,7 @@ import {ExploreRemotionCaptions} from './HomepageAssets/ExploreRemotion/Captions
 import {ExploreRemotionColorCorrection} from './HomepageAssets/ExploreRemotion/ColorCorrection';
 import {ExploreRemotion3DRotation} from './HomepageAssets/ExploreRemotion/Composition3DRotation';
 import {ExploreRemotionCompositionList} from './HomepageAssets/ExploreRemotion/CompositionList';
+import {ExploreRemotionConvert} from './HomepageAssets/ExploreRemotion/Convert';
 import {ExploreRemotionEffects} from './HomepageAssets/ExploreRemotion/Effects';
 import {ExploreRemotionParameterization} from './HomepageAssets/ExploreRemotion/Parameterization';
 import {ExploreRemotionQuickSwitcher} from './HomepageAssets/ExploreRemotion/QuickSwitcher';
@@ -302,6 +304,14 @@ export const RemotionRoot: React.FC = () => {
 			</Folder>
 			<Folder name="HomepageAssets">
 				<Folder name="ExploreRemotion">
+					<Composition
+						id="ExploreRemotionConvert"
+						component={ExploreRemotionConvert}
+						durationInFrames={366}
+						fps={60}
+						width={1080}
+						height={1080}
+					/>
 					<Composition
 						id="ExploreRemotionColorCorrection"
 						component={ExploreRemotionColorCorrection}
@@ -534,6 +544,19 @@ export const RemotionRoot: React.FC = () => {
 					durationInFrames={180}
 					fps={30}
 					width={1080}
+					height={1080}
+				/>
+				<Composition
+					id="CursorOrbit"
+					component={CursorOrbit}
+					calculateMetadata={() => ({
+						defaultCodec: 'vp8',
+						defaultPixelFormat: 'yuva420p',
+						defaultVideoImageFormat: 'png',
+					})}
+					durationInFrames={180}
+					fps={30}
+					width={1280}
 					height={1080}
 				/>
 			</Folder>

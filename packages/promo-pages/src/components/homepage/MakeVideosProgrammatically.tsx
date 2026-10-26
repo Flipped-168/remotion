@@ -13,7 +13,9 @@ export const MakeVideosProgrammatically: React.FC<{
 }> = ({
 	title = (
 		<>
-			<span className="min-[900px]:text-[var(--subtitle)]">Make videos</span>{' '}
+			<span className="min-[900px]:text-[var(--make-videos-programmatically-color,var(--subtitle))]">
+				Make videos
+			</span>{' '}
 			<br className="hidden min-[900px]:block" />
 			programmatically
 		</>
@@ -30,7 +32,7 @@ export const MakeVideosProgrammatically: React.FC<{
 	return (
 		<div className={'flex min-w-0 basis-0 flex-col flex-1'}>
 			{showVideo ? (
-				<div className="flex aspect-square w-full items-start">
+				<div className="flex aspect-square w-full max-w-[270px] self-start items-start justify-start">
 					{src ? (
 						<video
 							src={src}
@@ -48,7 +50,9 @@ export const MakeVideosProgrammatically: React.FC<{
 				<h2 className="text-2xl fontbrand leading-[1.1] font-medium max-[900px]:mb-2">
 					{title}
 				</h2>
-				<p className="text-balance leading-relaxed max-[900px]:mb-0">{description}</p>
+				<p className="text-balance leading-relaxed max-[900px]:mb-0">
+					{description}
+				</p>
 				{showLinks ? <MakeVideosLinks links={links} /> : null}
 			</div>
 		</div>
